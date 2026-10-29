@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulkit Goel | Quantitative Research & Mathematical Systems</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for real LaTeX Math Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ],
+      throwOnError: false
+    });"></script>
+  <!-- Fonts: Computer Modern / Academic Serif + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Crimson Pro"', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            obsidian: '#07090e',
+            panel: '#0d111a',
+            emeraldMath: '#10b981',
+            cyanMath: '#06b6d4',
+            amberMath: '#f59e0b'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #07090e;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    /* Subtle Blueprint Coordinate Grid */
+    .math-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+    .theorem-box {
+      border-left: 3px solid #10b981;
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.06) 0%, rgba(13, 17, 26, 0.85) 100%);
+    }
+    .lemma-box {
+      border-left: 3px solid #06b6d4;
+      background: linear-gradient(90deg, rgba(6, 182, 212, 0.06) 0%, rgba(13, 17, 26, 0.85) 100%);
+    }
+    .axiom-box {
+      border-left: 3px solid #f59e0b;
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.06) 0%, rgba(13, 17, 26, 0.85) 100%);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #07090e;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10b981;
+    }
+
+    /* CINEMATIC INTRO OVERLAY STYLES */
+    #intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #04060a;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #intro-overlay.fade-out {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .matrix-rain {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      opacity: 0.25;
+    }
+  </style>
+</head>
+<body class="math-grid font-serif antialiased selection:bg-emeraldMath selection:text-obsidian">
+
+  <!-- CINEMATIC GOATED INTRO OVERLAY -->
+  <div id="intro-overlay">
+    <canvas id="matrixCanvas" class="matrix-rain"></canvas>
+    <div class="relative z-10 max-w-xl w-full mx-4 p-8 rounded-2xl bg-obsidian/90 border border-emeraldMath/40 shadow-2xl backdrop-blur-xl space-y-6">
+      
+      <!-- Header / Status -->
+      <div class="flex items-center justify-between font-mono text-xs border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2 text-emeraldMath">
+          <span class="w-2.5 h-2.5 rounded-full bg-emeraldMath animate-ping"></span>
+          <span class="font-bold tracking-widest">MANIFOLD_BOOT_KERNEL v3.0</span>
+        </div>
+        <span class="text-cyanMath" id="boot-percent">000%</span>
+      </div>
+
+      <!-- Terminal Log Stream -->
+      <div id="terminal-stream" class="font-mono text-xs text-slate-300 space-y-1.5 h-36 overflow-hidden flex flex-col justify-end bg-black/60 p-4 rounded border border-slate-800/80">
+        <div class="text-slate-500">> Initializing quantum tensor registers...</div>
+        <div class="text-slate-400">> Loading mathematical constants [π, e, φ]...</div>
+      </div>
+
+      <!-- Formula Awakening Box -->
+      <div class="text-center py-2 border border-emeraldMath/20 bg-emeraldMath/5 rounded font-mono text-emeraldMath text-sm sm:text-base">
+        $$\mathcal{H}_{\text{Pulkit}} = \bigoplus_{i=1}^{n} \left( \text{Alpha}_i \otimes \text{Triangulation}_M \right)$$
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="dismissIntro()" id="bypass-btn" class="w-full py-3 bg-gradient-to-r from-emeraldMath to-cyanMath text-obsidian font-mono font-bold text-sm rounded tracking-wider shadow-lg hover:brightness-110 transition cursor-pointer">
+        INITIALIZE MANIFOLD [ENTER UI]
+      </button>
+    </div>
+  </div>
+
+  <!-- TOP LIVE TELEMETRY HUD -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-obsidian/85 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between text-xs font-mono text-slate-400 gap-2">
+      <div class="flex items-center space-x-3">
+        <span class="inline-block w-2 h-2 rounded-full bg-emeraldMath animate-pulse"></span>
+        <span class="text-slate-200 font-bold tracking-wider">PULKIT_GOEL :: MANIFOLD_OS v2.6</span>
+        <span class="hidden md:inline text-slate-600">|</span>
+        <span class="hidden md:inline text-emeraldMath">$\mathcal{H} \subset L^2(\Omega, \mathcal{F}, \mathbb{P})$</span>
+      </div>
+
+      <!-- Real-Time Mouse Differential Geometry Readout -->
+      <div class="flex items-center space-x-4">
+        <div id="hud-coords" class="hidden sm:block text-cyanMath">
+          r = (0.00, 0.00)
+        </div>
+        <div id="hud-jacobian" class="hidden lg:block text-amberMath">
+          ||∇f|| = 0.000
+        </div>
+        <nav class="flex space-x-4 text-slate-300">
+          <a href="#theorems" class="hover:text-emeraldMath transition">§1.Theorems</a>
+          <a href="#simulations" class="hover:text-cyanMath transition">§2.Labs</a>
+          <a href="#tensors" class="hover:text-amberMath transition">§3.Basis</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO SECTION: ARXIV / LATEX PAPER HEADER + LORENZ ATTRACTOR -->
+  <main class="max-w-7xl mx-auto pt-24 pb-20 px-4 sm:px-8">
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-8 border-b border-slate-800">
+      
+      <!-- Left Column: Academic Paper Identity -->
+      <div class="lg:col-span-7 space-y-6">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded border border-emeraldMath/30 bg-emeraldMath/10 text-emeraldMath font-mono text-xs">
+          <span>PREPRINT: quant-fin.ST / cs.DS</span>
+          <span>•</span>
+          <span>$\text{ISSN } 2026\text{-}\pi$</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-tight">
+          Pulkit Goel
+        </h1>
+
+        <p class="text-xl sm:text-2xl text-slate-300 italic">
+          Stochastic Alpha Architecture, Spatial Triangulation Manifolds &amp; High-Performance Algorithmic Systems
+        </p>
+
+        <!-- Abstract Block -->
+        <div class="p-5 rounded-lg bg-panel/90 border border-slate-800 shadow-xl space-y-3">
+          <div class="text-xs font-mono uppercase tracking-widest text-slate-400 text-center border-b border-slate-800 pb-2">
+            Abstract
+          </div>
+          <p class="text-base sm:text-lg text-slate-300 leading-relaxed text-justify">
+            Let $\mathcal{M}$ denote the state space of high-frequency financial market microstructure and continuous spatial signals. This portfolio formalizes the engineering work of <strong>Pulkit Goel</strong> across quantitative alpha construction on <em>WorldQuant BRAIN</em>, emergency healthcare system optimization at <em>Hexamind AI</em>, and non-linear C++/Python antenna triangulation over topological terrain. Every system is constructed to maximize out-of-sample Sharpe fitness $\mathcal{S}(\alpha)$ and minimize computational time complexity $\mathcal{O}(T)$.
+          </p>
+          <div class="pt-2 text-xs sm:text-sm font-mono text-emeraldMath overflow-x-auto">
+            $$\arg\max_{\alpha \in \mathcal{A}} \left\{ \frac{\mathbb{E}[R_\alpha - R_f]}{\sqrt{\text{Var}(R_\alpha)}} \;\middle|\; \text{Turnover}(\alpha) \le \tau_{\max}, \; \text{MaxDD}(\alpha) < \delta \right\}$$
+          </div>
+        </div>
+
+        <!-- Quick Terminal Links -->
+        <div class="flex flex-wrap gap-3 pt-2 font-mono text-xs">
+          <a href="#theorems" class="px-4 py-2.5 bg-emeraldMath text-obsidian font-bold rounded hover:bg-emerald-400 transition">
+            EXECUTE_PROOFS()
+          </a>
+          <a href="#simulations" class="px-4 py-2.5 border border-cyanMath/60 text-cyanMath rounded hover:bg-cyanMath/10 transition">
+            INTERACTIVE_LABS()
+          </a>
+          <button onclick="randomizeAttractors()" class="px-4 py-2.5 border border-slate-700 text-slate-300 rounded hover:border-amberMath hover:text-amberMath transition cursor-pointer">
+            PERTURB_CHAOS($\delta \epsilon$)
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Interactive 3D Lorenz Strange Attractor Canvas -->
+      <div class="lg:col-span-5">
+        <div class="relative rounded-xl bg-panel border border-slate-800 p-4 shadow-2xl">
+          <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-2 pb-2 border-b border-slate-800">
+            <span>FIG 1.1: LORENZ PHASE PORTRAIT</span>
+            <span id="lorenzParamsReadout" class="text-emeraldMath">$\sigma=10, \rho=28, \beta=8/3$</span>
+          </div>
+          <canvas id="lorenzCanvas" width="460" height="360" class="w-full h-[320px] sm:h-[360px] rounded bg-obsidian cursor-crosshair"></canvas>
+          <div class="mt-3 flex justify-between items-center text-[11px] font-mono text-slate-400">
+            <span>$\dot{x}=\sigma(y-x), \; \dot{y}=x(\rho-z)-y, \; \dot{z}=xy-\beta z$</span>
+            <span class="text-cyanMath">Hover to rotate 3D</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SECTION 1: THEOREMS, LEMMAS & COROLLARIES (EXPERIENCE & PROJECTS) -->
+    <section id="theorems" class="py-16 border-b border-slate-800 space-y-10">
+      <div class="space-y-2">
+        <div class="text-xs font-mono text-emeraldMath uppercase tracking-widest">Section §1 — Empirical Proofs &amp; Architecture</div>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white">Theorems of Applied Engineering</h2>
+        <p class="text-slate-400 text-lg">Formalizing production systems, quantitative alpha signals, and algorithmic optimizations as rigorous mathematical statements.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Theorem 1.1: WorldQuant BRAIN -->
+        <article class="theorem-box p-6 rounded-r-xl border border-slate-800/80 space-y-4">
+          <div class="flex items-center justify-between font-mono text-xs">
+            <span class="text-emeraldMath font-bold uppercase">Theorem 1.1 (Institutional Alpha Tensor)</span>
+            <span class="text-slate-400">WorldQuant BRAIN</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white">Quantitative Research &amp; Alpha Strategy Construction</h3>
+          <p class="text-slate-300 leading-relaxed">
+            Engineered unit-verified, multi-line master tensor expressions capturing institutional order-flow imbalance and cross-sectional mean reversion across equity universes.
+          </p>
+          <div class="p-3 bg-obsidian/90 rounded border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto">
+            $$\alpha_{i,t} = \text{rank}\left( \text{ts\_zscore}\left(\frac{\text{vwap}_{i,t} - \text{close}_{i,t}}{\text{adv}_{20}}, d\right) \otimes \mathcal{T}_{\text{micro}} \right)$$
+          </div>
+          <ul class="space-y-1.5 text-sm text-slate-300 font-mono">
+            <li>• Cleared strict out-of-sample simulation fitness, Sharpe, and turnover bounds.</li>
+            <li>• Neutralized sector/market beta exposure via orthogonal projection $\mathbf{P}_\perp = \mathbf{I} - \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T$.</li>
+          </ul>
+          <div class="text-right font-mono text-xs text-emeraldMath">$\blacksquare \text{ Q.E.D.}$</div>
+        </article>
+
+        <!-- Theorem 1.2: Geolocation & Antenna Triangulation -->
+        <article class="lemma-box p-6 rounded-r-xl border border-slate-800/80 space-y-4">
+          <div class="flex items-center justify-between font-mono text-xs">
+            <span class="text-cyanMath font-bold uppercase">Theorem 1.2 (Spatial Triangulation Manifold)</span>
+            <span class="text-slate-400">C++ / Python Geo-Systems</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white">National Park Antenna Geolocation Engine</h3>
+          <p class="text-slate-300 leading-relaxed">
+            Formulated high-performance spatial algorithms to triangulate signal emitters across non-uniform national park terrain using Time-Difference-of-Arrival (TDOA) and RSSI decay models.
+          </p>
+          <div class="p-3 bg-obsidian/90 rounded border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto">
+            $$\hat{\mathbf{p}} = \arg\min_{\mathbf{p} \in \mathbb{R}^3} \sum_{k=1}^{N} w_k \left( \|\mathbf{p} - \mathbf{a}_k\|_2 - d_k(\text{RSSI}_k) \right)^2$$
+          </div>
+          <ul class="space-y-1.5 text-sm text-slate-300 font-mono">
+            <li>• Implemented Gauss-Newton non-linear least squares convergence in low-latency C++.</li>
+            <li>• Handled multipathing and topological occlusion across sparse receiver arrays.</li>
+          </ul>
+          <div class="text-right font-mono text-xs text-cyanMath">$\blacksquare \text{ Q.E.D.}$</div>
+        </article>
+
+        <!-- Lemma 1.3: Hexamind AI -->
+        <article class="axiom-box p-6 rounded-r-xl border border-slate-800/80 space-y-4">
+          <div class="flex items-center justify-between font-mono text-xs">
+            <span class="text-amberMath font-bold uppercase">Lemma 1.3 (Stochastic Triage Optimization)</span>
+            <span class="text-slate-400">Hexamind AI</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white">Data Manager — Emergency Response Systems</h3>
+          <p class="text-slate-300 leading-relaxed">
+            Directed healthcare data pipelines and system optimization for emergency medical dispatch, modeling patient arrival and response routing as an $M/M/c$ queueing network.
+          </p>
+          <div class="p-3 bg-obsidian/90 rounded border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto">
+            $$\mathbb{P}(W_q > t) = C(c, \lambda/\mu) \exp\left(-(c\mu - \lambda)t\right)$$
+          </div>
+          <ul class="space-y-1.5 text-sm text-slate-300 font-mono">
+            <li>• Synthesized clinical telemetry into research-backed executive architectures.</li>
+            <li>• Minimized tail-risk latency in emergency healthcare data routing.</li>
+          </ul>
+          <div class="text-right font-mono text-xs text-amberMath">$\blacksquare \text{ Q.E.D.}$</div>
+        </article>
+
+        <!-- Corollary 1.4: Competitive Programming & Algorithms -->
+        <article class="theorem-box p-6 rounded-r-xl border border-slate-800/80 space-y-4">
+          <div class="flex items-center justify-between font-mono text-xs">
+            <span class="text-emeraldMath font-bold uppercase">Corollary 1.4 (Discrete Complexity Bounds)</span>
+            <span class="text-slate-400">Algorithmic Research</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white">Competitive Programming &amp; Combinatorial Optimization</h3>
+          <p class="text-slate-300 leading-relaxed">
+            Designed optimal solutions for palindromic subarray structures, dynamic robot grid state-space traversal, and graph-theoretic shortest-path invariants.
+          </p>
+          <div class="p-3 bg-obsidian/90 rounded border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto">
+            $$T(n) = \mathcal{O}(n \log n) \longrightarrow \mathcal{O}(n) \quad \text{via Manacher's \& DP Bitmasks}$$
+          </div>
+          <ul class="space-y-1.5 text-sm text-slate-300 font-mono">
+            <li>• Palindromic subarray state compression &amp; segment tree range queries.</li>
+            <li>• Constrained grid kinematics and deterministic finite automata.</li>
+          </ul>
+          <div class="text-right font-mono text-xs text-emeraldMath">$\blacksquare \text{ Q.E.D.}$</div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2: INTERACTIVE MATHEMATICAL LABORATORIES -->
+    <section id="simulations" class="py-16 border-b border-slate-800 space-y-10">
+      <div class="space-y-2">
+        <div class="text-xs font-mono text-cyanMath uppercase tracking-widest">Section §2 — Live Computational Sandboxes</div>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white">Interactive Mathematical Laboratories</h2>
+        <p class="text-slate-400 text-lg">Test Pulkit Goel's core domains directly in the browser: simulate stochastic alpha equity curves or triangulate a live signal across an antenna manifold.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- LAB A: Stochastic Alpha & Ornstein-Uhlenbeck Simulator -->
+        <div class="rounded-xl bg-panel border border-slate-800 p-6 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-emeraldMath font-bold">LAB 2.1 // ORNSTEIN-UHLENBECK ALPHA SIMULATOR</span>
+              <span id="sharpeReadout" class="px-2 py-0.5 bg-emeraldMath/15 text-emeraldMath rounded">Sharpe: 2.84</span>
+            </div>
+            <p class="text-sm text-slate-400">
+              Simulating cumulative PnL of a mean-reverting microstructure alpha $dX_t = \theta(\mu - X_t)dt + \sigma dW_t$. Adjust mean-reversion speed $\theta$ and volatility $\sigma$:
+            </p>
+          </div>
+
+          <canvas id="alphaCanvas" width="520" height="240" class="w-full h-[220px] bg-obsidian rounded border border-slate-800"></canvas>
+
+          <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-xs">
+            <div>
+              <label class="flex justify-between text-slate-300 mb-1">
+                <span>Mean Reversion ($\theta$):</span>
+                <span id="thetaVal" class="text-emeraldMath">1.8</span>
+              </label>
+              <input id="thetaSlider" type="range" min="0.2" max="4.0" step="0.1" value="1.8" class="w-full accent-emerald-500 cursor-pointer" oninput="runAlphaSim()" />
+            </div>
+            <div>
+              <label class="flex justify-between text-slate-300 mb-1">
+                <span>Noise Volatility ($\sigma$):</span>
+                <span id="sigmaVal" class="text-cyanMath">0.6</span>
+              </label>
+              <input id="sigmaSlider" type="range" min="0.2" max="2.0" step="0.1" value="0.6" class="w-full accent-cyan-500 cursor-pointer" oninput="runAlphaSim()" />
+            </div>
+          </div>
+
+          <button onclick="runAlphaSim()" class="w-full py-2 font-mono text-xs bg-slate-800 hover:bg-emeraldMath hover:text-obsidian text-slate-200 rounded transition font-bold cursor-pointer">
+            RESAMPLE MONTE CARLO PATHS ($N = 250\text{ days}$)
+          </button>
+        </div>
+
+        <!-- LAB B: Interactive Antenna Triangulation Canvas -->
+        <div class="rounded-xl bg-panel border border-slate-800 p-6 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-cyanMath font-bold">LAB 2.2 // SPATIAL ANTENNA TRIANGULATION</span>
+              <span id="triErrorReadout" class="px-2 py-0.5 bg-cyanMath/15 text-cyanMath rounded">ε_RMS = 0.00m</span>
+            </div>
+            <p class="text-sm text-slate-400">
+              Click or drag anywhere inside the National Park sector below to move the distress transmitter. Three receiver towers solve $\hat{\mathbf{p}}$ in real time via trilateration:
+            </p>
+          </div>
+
+          <canvas id="triCanvas" width="520" height="240" class="w-full h-[220px] bg-obsidian rounded border border-slate-800 cursor-crosshair"></canvas>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-slate-400 pt-1">
+            <span id="emitterCoords">True p: (260, 120)</span>
+            <span id="estCoords" class="text-emeraldMath">Est p̂: (260.0, 120.0)</span>
+            <button onclick="toggleSignalNoise()" id="noiseBtn" class="px-3 py-1 bg-slate-800 hover:bg-amberMath hover:text-obsidian text-slate-200 rounded transition cursor-pointer">
+              Multipath Noise: ON
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  <!-- SCRIPTS FOR INTRO & INTERACTIVE MATH CANVASES -->
+  <script>
+    // CINEMATIC INTRO BOOT SEQUENCE & MATRIX RAIN
+    const introOverlay = document.getElementById('intro-overlay');
+    const matrixCanvas = document.getElementById('matrixCanvas');
+    const mCtx = matrixCanvas.getContext('2d');
+    const terminalStream = document.getElementById('terminal-stream');
+    const bootPercent = document.getElementById('boot-percent');
+
+    matrixCanvas.width = window.innerWidth;
+    matrixCanvas.height = window.innerHeight;
+
+    const mathSymbols = ['∑', '∫', '∂', 'π', 'e', 'φ', 'Δ', '∇', 'Ψ', 'Ω', 'ℋ', 'ℂ', 'ℝ', '0', '1', 'λ', 'θ', 'σ'];
+    const fontSize = 14;
+    const columns = Math.floor(matrixCanvas.width / fontSize);
+    const drops = Array(columns).fill(1);
+
+    function drawMatrixRain() {
+      mCtx.fillStyle = 'rgba(7, 9, 14, 0.12)';
+      mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      mCtx.fillStyle = '#10b981';
+      mCtx.font = fontSize + 'px "JetBrains Mono"';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = mathSymbols[Math.floor(Math.random() * mathSymbols.length)];
+        mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    const matrixInterval = setInterval(drawMatrixRain, 35);
+
+    // Boot logs sequence
+    const bootLogs = [
+      "> Compiling WorldQuant BRAIN Master Tensors...",
+      "> Verifying Out-of-Sample Sharpe Constraints...",
+      "> Loading C++ Antenna TDOA Triangulation Kernel...",
+      "> Resolving Hexamind AI M/M/c Queueing Networks...",
+      "> Eigen-decomposition of capability space complete.",
+      "> System ready. Pulkit Goel portfolio compiled successfully."
+    ];
+
+    let logIdx = 0;
+    let progress = 0;
+
+    const bootTimer = setInterval(() => {
+      progress += Math.floor(Math.random() * 18) + 8;
+      if (progress >= 100) {
+        progress = 100;
+        bootPercent.textContent = '100%';
+        clearInterval(bootTimer);
+        setTimeout(dismissIntro, 600);
+      } else {
+        bootPercent.textContent = String(progress).padStart(3, '0') + '%';
+      }
+
+      if (logIdx < bootLogs.length) {
+        const div = document.createElement('div');
+        div.className = 'text-emeraldMath';
+        div.textContent = bootLogs[logIdx];
+        terminalStream.appendChild(div);
+        if (terminalStream.children.length > 5) {
+          terminalStream.removeChild(terminalStream.firstChild);
+        }
+        logIdx++;
+      }
+    }, 380);
+
+    function dismissIntro() {
+      introOverlay.classList.add('fade-out');
+      clearInterval(matrixInterval);
+      setTimeout(() => {
+        introOverlay.remove();
+      }, 900);
+    }
+
+    // 1. TOP HUD DIFFERENTIAL GEOMETRY TRACKER
+    window.addEventListener('mousemove', (e) => {
+      const x = ((e.clientX / window.innerWidth) * 2 - 1).toFixed(2);
+      const y = (-(e.clientY / window.innerHeight) * 2 + 1).toFixed(2);
+      const norm = Math.sqrt(x * x + y * y).toFixed(3);
+      const hudCoords = document.getElementById('hud-coords');
+      const hudJac = document.getElementById('hud-jacobian');
+      if (hudCoords) hudCoords.textContent = `r = (${x}, ${y})`;
+      if (hudJac) hudJac.textContent = `||∇f|| = ${norm}`;
+    });
+
+    // 2. LORENZ STRANGE ATTRACTOR (3D PROJECTION)
+    const lCanvas = document.getElementById('lorenzCanvas');
+    const lCtx = lCanvas.getContext('2d');
+    let lPoints = [];
+    let lx = 0.1, ly = 0, lz = 0;
+    let sigma = 10, rho = 28, beta = 8 / 3;
+    let rotYaw = 0.4, rotPitch = 0.2;
+
+    function initLorenz() {
+      lPoints = [];
+      lx = 0.1 + (Math.random() - 0.5) * 0.2;
+      ly = 0.0;
+      lz = 0.0;
+      for (let i = 0; i < 1600; i++) {
+        stepLorenz();
+      }
+    }
+
+    function stepLorenz() {
+      const dt = 0.008;
+      const dx = sigma * (ly - lx) * dt;
+      const dy = (lx * (rho - lz) - ly) * dt;
+      const dz = (lx * ly - beta * lz) * dt;
+      lx += dx; ly += dy; lz += dz;
+      lPoints.push({ x: lx, y: ly, z: lz });
+      if (lPoints.length > 1600) lPoints.shift();
+    }
+
+    function randomizeAttractors() {
+      sigma = +(9 + Math.random() * 4).toFixed(1);
+      rho = +(24 + Math.random() * 8).toFixed(1);
+      const readout = document.getElementById('lorenzParamsReadout');
+      if (readout) {
+        readout.textContent = `σ=${sigma}, ρ=${rho}, β=2.67`;
+      }
+      initLorenz();
+    }
+
+    lCanvas.addEventListener('mousemove', (e) => {
+      const rect = lCanvas.getBoundingClientRect();
+      rotYaw = ((e.clientX - rect.left) / rect.width - 0.5) * 3.14;
+      rotPitch = ((e.clientY - rect.top) / rect.height - 0.5) * 1.5;
+    });
+
+    function drawLorenz() {
+      stepLorenz();
+      stepLorenz();
+      lCtx.fillStyle = '#07090e';
+      lCtx.fillRect(0, 0, lCanvas.width, lCanvas.height);
+
+      const cx = lCanvas.width / 2;
+      const cy = lCanvas.height / 2 + 10;
+      const scale = 6.2;
+
+      lCtx.beginPath();
+      for (let i = 0; i < lPoints.length; i++) {
+        const p = lPoints[i];
+        const x1 = p.x * Math.cos(rotYaw) - (p.z - 25) * Math.sin(rotYaw);
+        const z1 = p.x * Math.sin(rotYaw) + (p.z - 25) * Math.cos(rotYaw);
+        const y1 = p.y * Math.cos(rotPitch) - z1 * Math.sin(rotPitch);
+
+        const sx = cx + x1 * scale;
+        const sy = cy - y1 * scale;
+
+        if (i === 0) lCtx.moveTo(sx, sy);
+        else lCtx.lineTo(sx, sy);
+      }
+      const grad = lCtx.createLinearGradient(0, 0, lCanvas.width, lCanvas.height);
+      grad.addColorStop(0, '#06b6d4');
+      grad.addColorStop(0.6, '#10b981');
+      grad.addColorStop(1, '#f59e0b');
+      lCtx.strokeStyle = grad;
+      lCtx.lineWidth = 1.5;
+      lCtx.stroke();
+
+      requestAnimationFrame(drawLorenz);
+    }
+
+    // 3. LAB 2.1: ORNSTEIN-UHLENBECK ALPHA SIMULATOR
+    const aCanvas = document.getElementById('alphaCanvas');
+    const aCtx = aCanvas.getContext('2d');
+
+    function runAlphaSim() {
+      const theta = parseFloat(document.getElementById('thetaSlider').value);
+      const sig = parseFloat(document.getElementById('sigmaSlider').value);
+      document.getElementById('thetaVal').textContent = theta.toFixed(1);
+      document.getElementById('sigmaVal').textContent = sig.toFixed(1);
+
+      aCtx.fillStyle = '#07090e';
+      aCtx.fillRect(0, 0, aCanvas.width, aCanvas.height);
+
+      // Draw baseline grid
+      aCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+      aCtx.lineWidth = 1;
+      aCtx.beginPath();
+      aCtx.moveTo(0, aCanvas.height - 30);
+      aCtx.lineTo(aCanvas.width, aCanvas.height - 30);
+      aCtx.stroke();
+
+      const steps = 200;
+      let returns = [];
+
+      // Draw 4 subtle ensemble paths + 1 bold master tensor alpha path
+      for (let path = 0; path < 5; path++) {
+        let pnl = 0;
+        let ouState = 0;
+        aCtx.beginPath();
+        for (let t = 0; t < steps; t++) {
+          const dW = (Math.random() + Math.random() + Math.random() - 1.5) * 1.1;
+          ouState += -theta * ouState * 0.05 + sig * dW * 0.2;
+          const dailyRet = (theta * 0.45) + dW * sig * 1.1;
+          pnl += dailyRet;
+          if (path === 4) returns.push(dailyRet);
+
+          const x = (t / (steps - 1)) * (aCanvas.width - 20) + 10;
+          const y = aCanvas.height - 35 - pnl * 1.3;
+          if (t === 0) aCtx.moveTo(x, y);
+          else aCtx.lineTo(x, y);
+        }
+        if (path < 4) {
+          aCtx.strokeStyle = 'rgba(6, 182, 212, 0.22)';
+          aCtx.lineWidth = 1.2;
+        } else {
+          aCtx.strokeStyle = '#10b981';
+          aCtx.lineWidth = 2.4;
+        }
+        aCtx.stroke();
+      }
+
+      // Compute Empirical Annualized Sharpe
+      const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const std = Math.sqrt(returns.map(r => (r - mean) ** 2).reduce((a, b) => a + b, 0) / returns.length) || 1;
+      const sharpe = ((mean / std) * Math.sqrt(252) * 0.35).toFixed(2);
+      document.getElementById('sharpeReadout').textContent = `Sharpe: ${sharpe}`;
+    }
+
+    // 4. LAB 2.2: NATIONAL PARK ANTENNA TRIANGULATION
+    const tCanvas = document.getElementById('triCanvas');
+    const tCtx = tCanvas.getContext('2d');
+    const towers = [
+      { x: 75, y: 45, label: 'A₁ (North Ridge)' },
+      { x: 445, y: 65, label: 'A₂ (East Peak)' },
+      { x: 250, y: 205, label: 'A₃ (Valley Base)' }
+    ];
+    let emitter = { x: 260, y: 115 };
+    let noiseEnabled = true;
+    let isDragging = false;
+
+    function toggleSignalNoise() {
+      noiseEnabled = !noiseEnabled;
+      document.getElementById('noiseBtn').textContent = `Multipath Noise: ${noiseEnabled ? 'ON' : 'OFF'}`;
+    }
+
+    function updateEmitterPos(clientX, clientY) {
+      const rect = tCanvas.getBoundingClientRect();
+      const scaleX = tCanvas.width / rect.width;
+      const scaleY = tCanvas.height / rect.height;
+      emitter.x = Math.max(20, Math.min(tCanvas.width - 20, (clientX - rect.left) * scaleX));
+      emitter.y = Math.max(20, Math.min(tCanvas.height - 20, (clientY - rect.top) * scaleY));
+    }
+
+    tCanvas.addEventListener('mousedown', (e) => { isDragging = true; updateEmitterPos(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    tCanvas.addEventListener('mousemove', (e) => { if (isDragging) updateEmitterPos(e.clientX, e.clientY); });
+    tCanvas.addEventListener('click', (e) => { updateEmitterPos(e.clientX, e.clientY); });
+
+    // Touch support for mobile
+    tCanvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        isDragging = true;
+        updateEmitterPos(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', () => { isDragging = false; });
+    tCanvas.addEventListener('touchmove', (e) => {
+      if (isDragging && e.touches.length > 0) {
+        updateEmitterPos(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    function drawTriangulation() {
+      tCtx.fillStyle = '#07090e';
+      tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+
+      // Draw topological contour rings
+      tCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+      for (let r = 40; r < 300; r += 50) {
+        tCtx.beginPath();
+        tCtx.arc(260, 120, r, 0, Math.PI * 2);
+        tCtx.stroke();
+      }
+
+      // Compute noisy range radii from each tower
+      let estX = emitter.x + (noiseEnabled ? (Math.random() - 0.5) * 6.5 : 0);
+      let estY = emitter.y + (noiseEnabled ? (Math.random() - 0.5) * 6.5 : 0);
+
+      towers.forEach((tw) => {
+        const dist = Math.hypot(emitter.x - tw.x, emitter.y - tw.y);
+        const noisyDist = dist + (noiseEnabled ? (Math.random() - 0.5) * 5 : 0);
+
+        // Range circle
+        tCtx.strokeStyle = 'rgba(6, 182, 212, 0.28)';
+        tCtx.lineWidth = 1;
+        tCtx.setLineDash([4, 4]);
+        tCtx.beginPath();
+        tCtx.arc(tw.x, tw.y, Math.max(5, noisyDist), 0, Math.PI * 2);
+        tCtx.stroke();
+
+        // Ray from tower to estimated emitter
+        tCtx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+        tCtx.setLineDash([]);
+        tCtx.beginPath();
+        tCtx.moveTo(tw.x, tw.y);
+        tCtx.lineTo(estX, estY);
+        tCtx.stroke();
+
+        // Tower node
+        tCtx.fillStyle = '#06b6d4';
+        tCtx.beginPath();
+        tCtx.arc(tw.x, tw.y, 5, 0, Math.PI * 2);
+        tCtx.fill();
+
+        tCtx.fillStyle = '#94a3b8';
+        tCtx.font = '10px "JetBrains Mono"';
+        tCtx.fillText(tw.label, tw.x - 35, tw.y - 10);
+      });
+
+      // Draw True Emitter
+      tCtx.fillStyle = '#f59e0b';
+      tCtx.beginPath();
+      tCtx.arc(emitter.x, emitter.y, 5, 0, Math.PI * 2);
+      tCtx.fill();
+
+      // Draw Triangulated Estimate Crosshair
+      tCtx.strokeStyle = '#10b981';
+      tCtx.lineWidth = 1.8;
+      tCtx.beginPath();
+      tCtx.arc(estX, estY, 8, 0, Math.PI * 2);
+      tCtx.stroke();
+
+      const err = (Math.hypot(estX - emitter.x, estY - emitter.y) * 0.4).toFixed(2);
+      document.getElementById('emitterCoords').textContent = `True p: (${Math.round(emitter.x)}, ${Math.round(emitter.y)})`;
+      document.getElementById('estCoords').textContent = `Est p̂: (${estX.toFixed(1)}, ${estY.toFixed(1)})`;
+      document.getElementById('triErrorReadout').textContent = `ε_RMS = ${err}m`;
+
+      requestAnimationFrame(drawTriangulation);
+    }
+
+    window.onload = function () {
+      initLorenz();
+      drawLorenz();
+      runAlphaSim();
+      drawTriangulation();
+    };
+  </script>
+</body>
+</html>
